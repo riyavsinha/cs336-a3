@@ -27,42 +27,55 @@ def plot_loss_curves(df: pd.DataFrame, save_path: str):
   plt.grid(True)
   plt.savefig(save_path)
   
-def plot_params(df: pd.DataFrame, save_path: str):
+def plot_against_compute(df: pd.DataFrame, y:str, ylabel: str, save_path: str):
   os.makedirs(os.path.dirname(save_path), exist_ok=True)
   plt.figure()
   plt.plot(
     df["compute_budget"],
-    df["parameters"],
+    df[y],
     marker="o",
   )
   plt.xlabel("Compute Budget")
-  plt.ylabel("Parameters")
+  plt.ylabel(ylabel)
   plt.xscale("log")
-  plt.title("Parameters vs Compute Budget")
+  plt.title(f"{ylabel} vs Compute Budget")
   plt.grid(True)
   plt.savefig(save_path)
 
 def power_law(C, a, b):
   return a * C ** b
   
-def fit(df: pd.DataFrame):
+def fit_params(df: pd.DataFrame):
   min_inds = df.groupby("compute_budget").idxmin()["final_loss"]
   df = df.loc[min_inds][["compute_budget", "parameters"]]
-  (a, b), c = scipy.optimize.curve_fit(power_law, df["compute_budget"], df["parameters"])
+  (a, b), _ = scipy.optimize.curve_fit(power_law, df["compute_budget"], df["parameters"])
+  return df, lambda C: power_law(C, a, b)
+
+def fit_data(df: pd.DataFrame):
+  df = df.loc[df.groupby("compute_budget").idxmin()["final_loss"]]
+  df["d"] = df["compute_budget"] / (6* df["parameters"])
+  df = df[["compute_budget", "d"]]
+  (a, b), _ = scipy.optimize.curve_fit(power_law, df["compute_budget"], df["d"])
   return df, lambda C: power_law(C, a, b)
     
     
 if __name__ == "__main__":
   p = "data/isoflops_curves.json"
   df = load_data(p)
-  plot_loss_curves(df, "figs/2a_loss.png")
-  min_df, fit_fn = fit(df)
+  plot_loss_curves(df, "figs/2_loss.png")
+  
+  cbs = [6e21, 1e22, 3e22, 6e22, 1e23, 3e23, 6e23, 1e24]
   
   # a)
-  cbs = [6e21, 1e22, 3e22, 6e22, 1e23, 3e23, 6e23, 1e24]
+  min_df, fit_fn = fit_params(df)
   preds = pd.DataFrame({"compute_budget": cbs, "parameters": [fit_fn(cb) for cb in cbs]})
   pred_df = pd.concat([min_df, preds])
   print(preds.to_latex(index=False, float_format="%.3e"))
-  plot_params(pred_df, "figs/2a_params.png")
+  plot_against_compute(pred_df, "parameters", "Parameters", "figs/2a_params.png")
   
-  
+  # b)
+  min_d_df, fit_d_fn = fit_data(df)
+  preds = pd.DataFrame({"compute_budget": cbs, "d": [fit_d_fn(cb) for cb in cbs]})
+  pred_df = pd.concat([min_d_df, preds])
+  print(preds.to_latex(index=False, float_format="%.3e"))
+  plot_against_compute(pred_df, "d", "Data Size", "figs/2b_data.png")
