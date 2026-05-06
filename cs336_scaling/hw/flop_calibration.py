@@ -37,6 +37,11 @@ def flops(exp: ExperimentResponse) -> float:
 def calc_runtime(C):
   return max(1.0, 1.5 * C / flops_per_sec())
 
+
+def calc_compute_budget(mins):
+  return 60.0 * mins * flops_per_sec()
+
+
 def flops_per_sec():
   exp = run(SMALL_CONFIG)
   if exp.status.status_type == "completed":
