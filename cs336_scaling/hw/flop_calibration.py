@@ -42,7 +42,9 @@ def calc_compute_budget(mins):
   return 60.0 * mins * flops_per_sec()
 
 
-def flops_per_sec():
+def flops_per_sec(old: bool = True):
+  if not old:
+    return 3.0e14
   exp = run(SMALL_CONFIG)
   if exp.status.status_type == "completed":
     return flops(exp)
