@@ -1,6 +1,6 @@
 from cs336_scaling.hw.flop_calibration import calc_compute_budget
 from cs336_scaling.hw.models import N_EVALS, calc_n_layers
-from cs336_scaling.hw.utils import calc_tokens, get_best_loss, get_last_loss, non_embedding_params, print_exp, run
+from cs336_scaling.hw.utils import all_done, calc_tokens, get_best_loss, get_last_loss, non_embedding_params, print_exp, run
 from cs336_scaling.training.model.basic_model import BasicTransformerConfig
 from cs336_scaling.training.optimizer import AdamWConfig, WarmupCosineDecay
 from cs336_scaling.training.training_config import TrainingConfig
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     exps.append(exp)
     print_exp(exp)
 
-  if all(e.status.status_type in ("completed", "failed") for e in exps):
+  if all_done(exps):
     best = get_best_loss(exps)
     best_lr = best.training_config.optimizer_config.lr_scheduler.peak_value
     print(f"best_lr={best_lr} best_val_loss={get_last_loss(best)}")

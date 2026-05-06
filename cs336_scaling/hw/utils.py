@@ -101,3 +101,6 @@ def print_exp(exp: ExperimentResponse):
 def get_best_loss(exps: list[ExperimentResponse]):
   assert all(e.status.status_type in ("completed", "failed") for e in exps), "Not all experiments done yet"
   return min(exps, key=get_last_loss)
+
+def all_done(exps: list[ExperimentResponse]):
+  return all(e.status.status_type in ("completed", "failed") for e in exps)
