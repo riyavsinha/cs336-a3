@@ -1,4 +1,5 @@
 import os
+import dotenv
 
 import requests
 from pydantic import JsonValue, TypeAdapter
@@ -11,6 +12,8 @@ from cs336_scaling.schemas import (
     SubmitResponse,
 )
 from cs336_scaling.training.training_config import TrainingConfig
+
+dotenv.load_dotenv()
 
 API_BASE_URL = "http://hyperturing.stanford.edu:8000"
 API_KEY = os.getenv("A3_API_KEY", "")
