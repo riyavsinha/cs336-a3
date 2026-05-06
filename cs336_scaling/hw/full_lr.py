@@ -1,13 +1,15 @@
 from cs336_scaling.hw.flop_calibration import calc_compute_budget
-from cs336_scaling.hw.models import TRAIN_BATCH_SIZE, VAL_BATCH_SIZE, N_EVALS, calc_n_layers
-from cs336_scaling.hw.utils import calc_tokens, eval_progress_str, get_best_loss, get_last_loss, non_embedding_params, non_embedding_params_from_config, run
+from cs336_scaling.hw.models import N_EVALS, calc_n_layers
+from cs336_scaling.hw.utils import calc_tokens, get_best_loss, get_last_loss, non_embedding_params, print_exp, run
 from cs336_scaling.training.model.basic_model import BasicTransformerConfig
 from cs336_scaling.training.optimizer import AdamWConfig, WarmupCosineDecay
 from cs336_scaling.training.training_config import TrainingConfig
 
 LR_RUNTIME_MINS = 45
+TRAIN_BATCH_SIZE = 64
+VAL_BATCH_SIZE = 16
 D_MODEL = 1920
-LR_VALUES = [3e-3, 1e-2, 3e-2, 5e-2]
+LR_VALUES = [5e-4, 1e-3, 2e-3, 3e-3, 4e-3, 5e-3, 6e-3, 8e-3, 1e-2, 3e-2, 5e-2]
 LR_COMPUTE_BUDGET = calc_compute_budget(LR_RUNTIME_MINS)
 
 
@@ -46,17 +48,9 @@ if __name__ == "__main__":
   exps = []
   for lr in LR_VALUES:
     config = make_full_training_config(lr)
-    print(config)
     exp = run(config)
     exps.append(exp)
-    N = non_embedding_params_from_config(config)
-    print(
-      f"lr={lr:.4e} d_model={D_MODEL} N={N} tokens={config.total_train_tokens} "
-      f"id={exp.experiment_id} status={exp.status.status_type} evals={eval_progress_str(exp)}"
-    )
-
-    if exp.status.status_type in ("completed", "failed"):
-      print(f"last_val_loss={get_last_loss(exp):.6f}")
+    print_exp(exp)
 
   if all(e.status.status_type in ("completed", "failed") for e in exps):
     best = get_best_loss(exps)

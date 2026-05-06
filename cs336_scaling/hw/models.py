@@ -1,11 +1,10 @@
-import datetime as dt
 import math
 
 import pandas as pd
 
 from cs336_scaling.hw.flop_calibration import calc_compute_budget, full_run_flops
 from cs336_scaling.hw.isoflops_laws import fit_data, fit_params, plot_against_compute, plot_loss_curves
-from cs336_scaling.hw.utils import calc_tokens, eval_progress_str, get_last_loss, non_embedding_params, non_embedding_params_from_config, run
+from cs336_scaling.hw.utils import calc_tokens, get_last_loss, non_embedding_params, non_embedding_params_from_config, print_exp, run
 from cs336_scaling.training.model.basic_model import BasicTransformerConfig
 from cs336_scaling.training.optimizer import AdamWConfig, WarmupCosineDecay
 from cs336_scaling.training.training_config import TrainingConfig
@@ -72,29 +71,15 @@ def pred_cs(df, n_intervals=7):
 
 if __name__ == "__main__":
   rows = []
-  for i, (C, dms, runtime) in enumerate(zip(C_LEVELS, DM_BY_LEVEL, RUNTIME_SECS), start=1):
+  for C, dms, runtime in zip(C_LEVELS, DM_BY_LEVEL, RUNTIME_SECS):
     for d_model in dms:
       config = make_config(d_model, C, runtime)
       exp = run(config)
       N = non_embedding_params_from_config(config)
-      lr = config.optimizer_config.lr_scheduler.peak_value
-      if exp.status.status_type == "completed":
-        true_rt = exp.status.used_runtime_seconds
-      elif exp.status.status_type == "failed":
-        true_rt = runtime
-      elif exp.status.status_type == "running":
-        true_rt = (dt.datetime.now(dt.timezone.utc) - exp.status.dispatched_at).total_seconds()
-      else:
-        true_rt = 0
-      print(
-        f"level=C{i} C={C:.3e} d_model={d_model} N={N} lr={lr:.4e} "
-        f"tokens={config.total_train_tokens} runtime={true_rt:.1f}s(expected: {config.max_runtime_seconds:.1f}s) "
-        f"id={exp.experiment_id} status={exp.status.status_type} evals={eval_progress_str(exp)}"
-      )
+      print_exp(exp)
 
       if exp.status.status_type in ("completed", "failed"):
         final_loss = get_last_loss(exp)
-        print(f"last_val_loss={final_loss:.6f}")
       else:
         final_loss = float("nan")
       rows.append({"parameters": N, "compute_budget": C, "final_loss": final_loss})

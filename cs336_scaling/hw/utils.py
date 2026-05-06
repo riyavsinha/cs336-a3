@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import math
 from pathlib import Path
@@ -57,7 +58,7 @@ def get_last_loss(exp: ExperimentResponse):
     return st.val_losses[-1]
   if st.status_type == "failed" and st.reason.reason == "timeout" and st.reason.partial_val_losses:
     return st.reason.partial_val_losses[-1]
-  raise ValueError(f"no usable val loss for status={st.status_type}")
+  return math.inf
 
 
 def eval_progress(exp: ExperimentResponse):
@@ -77,6 +78,24 @@ def eval_progress(exp: ExperimentResponse):
 def eval_progress_str(exp: ExperimentResponse):
   done, total = eval_progress(exp)
   return f"{done}/{total}"
+
+
+def print_exp(exp: ExperimentResponse):
+  config = exp.training_config
+  N = non_embedding_params_from_config(config)
+  lr = config.optimizer_config.lr_scheduler.peak_value
+  C = 6 * N * config.total_train_tokens
+  if exp.status.status_type == "completed":
+    runtime = exp.status.used_runtime_seconds
+  elif exp.status.status_type == "failed":
+    runtime = getattr(exp.status, "used_runtime_seconds", config.max_runtime_seconds)
+  elif exp.status.status_type == "running":
+    runtime = (dt.datetime.now(dt.timezone.utc) - exp.status.dispatched_at).total_seconds()
+  else:
+    runtime = 0
+  print(f"C={C:.3e} d_model={config.architecture_config.hidden_size} N={N} lr={lr:.4e} tokens={config.total_train_tokens} runtime={runtime:.1f}s(expected: {config.max_runtime_seconds:.1f}s) id={exp.experiment_id} status={exp.status.status_type} evals={eval_progress_str(exp)}")
+  if exp.status.status_type in ("completed", "failed"):
+    print(f"last_val_loss={get_last_loss(exp):.6f}")
 
 
 def get_best_loss(exps: list[ExperimentResponse]):

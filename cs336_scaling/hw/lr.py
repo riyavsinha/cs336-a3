@@ -1,5 +1,5 @@
 from cs336_scaling.hw.flop_calibration import SMALL_CONFIG, calc_compute_budget
-from cs336_scaling.hw.utils import calc_tokens, eval_progress_str, get_best_loss, get_last_loss, non_embedding_params_from_config, run
+from cs336_scaling.hw.utils import calc_tokens, get_best_loss, get_last_loss, non_embedding_params_from_config, print_exp, run
 from cs336_scaling.schemas import ExperimentResponse
 from cs336_scaling.training.optimizer import AdamWConfig, WarmupCosineDecay
 from cs336_scaling.training.training_config import TrainingConfig
@@ -41,10 +41,8 @@ if __name__ == "__main__":
 
   exps = [run(make_lr_config(lr, d_tokens, RUNTIME_MINS * 60)) for lr in LR_VALUES]
 
-  for lr, exp in zip(LR_VALUES, exps):
-    print(
-      f"lr={lr} experiment_id={exp.experiment_id} status={exp.status.status_type} evals={eval_progress_str(exp)}"
-    )
+  for exp in exps:
+    print_exp(exp)
 
   if not all(e.status.status_type in ("completed", "failed") for e in exps):
     print("Waiting.")
