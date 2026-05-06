@@ -2,7 +2,7 @@ from cs336_scaling.schemas import ExperimentResponse
 from cs336_scaling.training.model.basic_model import BasicTransformerConfig
 from cs336_scaling.training.optimizer import AdamWConfig
 from cs336_scaling.training.training_config import TrainingConfig
-from cs336_scaling.hw.utils import run
+from cs336_scaling.hw.utils import non_embedding_params, run
 
 SMALL_CONFIG = TrainingConfig(
   architecture_config=BasicTransformerConfig(
@@ -29,17 +29,21 @@ SMALL_CONFIG = TrainingConfig(
 )
 
 def flops(exp: ExperimentResponse) -> float:
-  cfg = exp.training_config
-  n = 12 * cfg.architecture_config.num_hidden_layers * cfg.architecture_config.hidden_size**2
-  d = cfg.total_train_tokens
+  n = non_embedding_params(exp.training_config)
+  d = exp.training_config.total_train_tokens
   t = exp.status.used_runtime_seconds
   return 6.0 * n * d / t
 
-if __name__ == "__main__":
+def calc_runtime(C):
+  return max(1.0, 1.5 * C / flops_per_sec())
+
+def flops_per_sec():
   exp = run(SMALL_CONFIG)
-  print(f"experiment_id={exp.experiment_id}")
-  print(f"status={exp.status.status_type}")
   if exp.status.status_type == "completed":
-    eff = flops(exp)
-    print(f"flops/sec={eff:.6e}")
-    print(f"48h flops={48 * 3600 * eff}")
+    return flops(exp)
+  raise Exception("wait")
+
+if __name__ == "__main__":
+  fps = flops_per_sec()
+  print(f"flops/sec={fps:.6e}")
+  print(f"48h flops={48 * 3600 * fps}")

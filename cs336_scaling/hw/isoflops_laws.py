@@ -62,6 +62,7 @@ def fit_data(df: pd.DataFrame):
 if __name__ == "__main__":
   p = "data/isoflops_curves.json"
   df = load_data(p)
+  print(df)
   plot_loss_curves(df, "figs/2_loss.png")
   
   cbs = [6e21, 1e22, 3e22, 6e22, 1e23, 3e23, 6e23, 1e24]
