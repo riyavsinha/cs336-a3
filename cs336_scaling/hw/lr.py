@@ -1,5 +1,5 @@
 from cs336_scaling.hw.flop_calibration import SMALL_CONFIG, calc_compute_budget
-from cs336_scaling.hw.utils import calc_tokens, eval_progress_str, get_best_loss, get_last_loss, non_embedding_params, run
+from cs336_scaling.hw.utils import calc_tokens, eval_progress_str, get_best_loss, get_last_loss, non_embedding_params_from_config, run
 from cs336_scaling.schemas import ExperimentResponse
 from cs336_scaling.training.optimizer import AdamWConfig, WarmupCosineDecay
 from cs336_scaling.training.training_config import TrainingConfig
@@ -36,7 +36,7 @@ def lr_scale_from_reference(best_lr, C, *, C_ref=C1):
 
 
 if __name__ == "__main__":
-  N = non_embedding_params(SMALL_CONFIG)
+  N = non_embedding_params_from_config(SMALL_CONFIG)
   d_tokens = calc_tokens(C1, N)
 
   exps = [run(make_lr_config(lr, d_tokens, RUNTIME_MINS * 60)) for lr in LR_VALUES]

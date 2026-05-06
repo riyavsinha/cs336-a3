@@ -35,8 +35,11 @@ def run(config: TrainingConfig) -> ExperimentResponse:
     save_map(mapping)
     return exp
   
-def non_embedding_params(config: TrainingConfig):
-  return 12 * config.architecture_config.num_hidden_layers * config.architecture_config.hidden_size**2
+def non_embedding_params_from_config(config: TrainingConfig):
+  return non_embedding_params(config.architecture_config.hidden_size, config.architecture_config.num_hidden_layers)
+
+def non_embedding_params(d_model, n_layers):
+  return 12 * n_layers * d_model**2
 
 def calc_tokens(C, N, batch_size=128, n_evals=16):
   d = int(math.ceil(C / (6 * N)))

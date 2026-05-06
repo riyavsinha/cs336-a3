@@ -2,7 +2,7 @@ from cs336_scaling.schemas import ExperimentResponse
 from cs336_scaling.training.model.basic_model import BasicTransformerConfig
 from cs336_scaling.training.optimizer import AdamWConfig
 from cs336_scaling.training.training_config import TrainingConfig
-from cs336_scaling.hw.utils import non_embedding_params, run
+from cs336_scaling.hw.utils import non_embedding_params_from_config, run
 
 SMALL_CONFIG = TrainingConfig(
   architecture_config=BasicTransformerConfig(
@@ -29,7 +29,7 @@ SMALL_CONFIG = TrainingConfig(
 )
 
 def flops(exp: ExperimentResponse) -> float:
-  n = non_embedding_params(exp.training_config)
+  n = non_embedding_params_from_config(exp.training_config)
   d = exp.training_config.total_train_tokens
   t = exp.status.used_runtime_seconds
   return 6.0 * n * d / t
