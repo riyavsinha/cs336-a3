@@ -34,8 +34,8 @@ def flops(exp: ExperimentResponse) -> float:
   t = exp.status.used_runtime_seconds
   return 6.0 * n * d / t
 
-def calc_compute_budget(mins):
-  return 60.0 * mins * flops_per_sec()
+def calc_compute_budget(mins, old=True):
+  return 60.0 * mins * flops_per_sec(old=old)
 
 def flops_per_sec(old: bool = True):
   if not old:
