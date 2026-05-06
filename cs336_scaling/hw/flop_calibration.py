@@ -44,13 +44,17 @@ def calc_compute_budget(mins):
 
 def flops_per_sec(old: bool = True):
   if not old:
+    # from model runs
     return 3.0e14
   exp = run(SMALL_CONFIG)
   if exp.status.status_type == "completed":
     return flops(exp)
   raise Exception("wait")
 
+def full_run_flops():
+  return 48 * 3600 * flops_per_sec(old=False)
+
 if __name__ == "__main__":
-  fps = flops_per_sec()
+  fps = flops_per_sec(old=False)
   print(f"flops/sec={fps:.6e}")
-  print(f"48h flops={48 * 3600 * fps}")
+  print(f"48h flops={full_run_flops()}")

@@ -29,6 +29,7 @@ def plot_loss_curves(df: pd.DataFrame, save_path: str):
   
 def plot_against_compute(df: pd.DataFrame, y:str, ylabel: str, save_path: str):
   os.makedirs(os.path.dirname(save_path), exist_ok=True)
+  df = df.sort_values("compute_budget")
   plt.figure()
   plt.plot(
     df["compute_budget"],
