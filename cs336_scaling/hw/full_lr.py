@@ -1,3 +1,5 @@
+import pandas as pd
+
 from cs336_scaling.hw.flop_calibration import calc_compute_budget
 from cs336_scaling.hw.models import N_EVALS, calc_n_layers
 from cs336_scaling.hw.utils import all_done, calc_tokens, get_best_loss, get_last_loss, non_embedding_params, print_exp, run
@@ -53,6 +55,14 @@ if __name__ == "__main__":
     print_exp(exp)
 
   if all_done(exps):
+    df = pd.DataFrame([
+      {
+        "lr": exp.training_config.optimizer_config.lr_scheduler.peak_value,
+        "final_loss": get_last_loss(exp),
+      }
+      for exp in exps
+    ])
+    print(df.to_latex(index=False, float_format="%.3e"))
     best = get_best_loss(exps)
     best_lr = best.training_config.optimizer_config.lr_scheduler.peak_value
     print(f"best_lr={best_lr} best_val_loss={get_last_loss(best)}")

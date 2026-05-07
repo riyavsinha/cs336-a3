@@ -1,3 +1,5 @@
+import pandas as pd
+
 from cs336_scaling.hw.flop_calibration import calc_compute_budget
 from cs336_scaling.hw.models import N_EVALS
 from cs336_scaling.hw.utils import all_done, calc_tokens, get_best_loss, get_last_loss, non_embedding_params, print_exp, run
@@ -56,6 +58,19 @@ if __name__ == "__main__":
     print_exp(exp)
 
   if all_done(exps):
+    df = pd.DataFrame([
+      {
+        "d_model": exp.training_config.architecture_config.hidden_size,
+        "n_layers": exp.training_config.architecture_config.num_hidden_layers,
+        "parameters": non_embedding_params(
+          exp.training_config.architecture_config.hidden_size,
+          exp.training_config.architecture_config.num_hidden_layers,
+        ),
+        "final_loss": get_last_loss(exp),
+      }
+      for exp in exps
+    ])
+    print(df.to_latex(index=False, float_format="%.3e"))
     best = get_best_loss(exps)
     config = best.training_config
     print(
