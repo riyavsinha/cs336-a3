@@ -55,13 +55,7 @@ if __name__ == "__main__":
     print_exp(exp)
 
   if all_done(exps):
-    df = pd.DataFrame([
-      {
-        "lr": exp.training_config.optimizer_config.lr_scheduler.peak_value,
-        "final_loss": get_last_loss(exp),
-      }
-      for exp in exps
-    ])
+    df = pd.DataFrame([{"lr": exp.training_config.optimizer_config.lr_scheduler.peak_value, "final_loss": get_last_loss(exp)} for exp in exps])
     print(df.to_latex(index=False, float_format="%.3e"))
     best = get_best_loss(exps)
     best_lr = best.training_config.optimizer_config.lr_scheduler.peak_value

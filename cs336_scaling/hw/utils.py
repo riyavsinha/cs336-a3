@@ -51,6 +51,10 @@ def calc_tokens(C, N, batch_size=128, n_evals=16):
   m = SEQ_LEN * batch_size * n_evals
   return ((d + m - 1) // m) * m
 
+def flops_per_sec(exp: ExperimentResponse):
+  N = non_embedding_params_from_config(exp.training_config)
+  d = exp.training_config.total_train_tokens
+  return 6 * N * d / exp.status.used_runtime_seconds
 
 def get_last_loss(exp: ExperimentResponse):
   st = exp.status
@@ -59,7 +63,6 @@ def get_last_loss(exp: ExperimentResponse):
   if st.status_type == "failed" and st.reason.reason == "timeout" and st.reason.partial_val_losses:
     return st.reason.partial_val_losses[-1]
   return math.inf
-
 
 def eval_progress(exp: ExperimentResponse):
   total = exp.training_config.n_evals

@@ -2,7 +2,6 @@ import numpy as np
 import scipy.optimize
 
 from cs336_scaling.client import save_final_submission
-from cs336_scaling.hw.flop_calibration import full_run_flops
 from cs336_scaling.hw.utils import calc_tokens, non_embedding_params
 from cs336_scaling.training.model.basic_model import BasicTransformerConfig
 from cs336_scaling.training.optimizer import AdamWConfig, WarmupCosineDecay
@@ -13,9 +12,10 @@ TRAIN_BATCH_SIZE = 64
 VAL_BATCH_SIZE = 16
 N_EVALS = 16
 LR = 4e-3
-D_MODEL = 1920
-N_LAYERS = 15
-C = full_run_flops()
+D_MODEL = 2048
+N_LAYERS = 18
+FLOPS_PER_SEC = 5.5e14
+C = RUNTIME_MINS * 60 * FLOPS_PER_SEC
 
 # from running models
 RUNS = [
@@ -46,11 +46,7 @@ def predict_loss(N, D):
   ns = np.array([n for n, _, _ in RUNS])
   ds = np.array([c / (6 * n) for n, c, _ in RUNS])
   losses = np.array([loss for _, _, loss in RUNS])
-  (c, a, alpha, b, beta), _ = scipy.optimize.curve_fit(
-    loss_law,
-    (ns, ds),
-    losses,
-  )
+  (c, a, alpha, b, beta), _ = scipy.optimize.curve_fit(loss_law, (ns, ds), losses)
   return loss_law((N, D), c, a, alpha, b, beta)
 
 
@@ -88,4 +84,4 @@ if __name__ == "__main__":
   config = make_config()
   N = non_embedding_params(D_MODEL, N_LAYERS)
   print(predict_loss(N, config.total_train_tokens))
-  # print(save_final_submission(config, predict_loss(N, config.total_train_tokens)))
+  print(save_final_submission(config, predict_loss(N, config.total_train_tokens)))

@@ -1,22 +1,22 @@
 import pandas as pd
 
-from cs336_scaling.hw.flop_calibration import calc_compute_budget
 from cs336_scaling.hw.models import N_EVALS
 from cs336_scaling.hw.utils import all_done, calc_tokens, flops_per_sec, get_best_loss, get_last_loss, non_embedding_params, print_exp, run
 from cs336_scaling.training.model.basic_model import BasicTransformerConfig
 from cs336_scaling.training.optimizer import AdamWConfig, WarmupCosineDecay
 from cs336_scaling.training.training_config import TrainingConfig
 
-RUNTIME_MINS = 90
+RUNTIME_MINS = 45
 TRAIN_BATCH_SIZE = 64
 VAL_BATCH_SIZE = 16
 LR = 4e-3
-C = calc_compute_budget(RUNTIME_MINS, old=False)
+FLOPS_PER_SEC = 5.2e14 # from fps from models2
+C = RUNTIME_MINS * 60 * FLOPS_PER_SEC
 
 SHAPES = [
-  (2048, 13),
-  (1920, 15),
-  (1792, 18),
+  (2048, 18),
+  (2176, 16),
+  (2240, 15),
 ]
 
 
